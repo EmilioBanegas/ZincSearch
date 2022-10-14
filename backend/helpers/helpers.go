@@ -6,11 +6,11 @@ import (
 )
 
 func Getb64() string {
-	strToEncode := os.Getenv("ENV_USER") +":"+os.Getenv("ENV_PASSWORD") 
+	strToEncode := os.Getenv("ENV_ZINC_USER") +":"+os.Getenv("ENV_ZINC_PASSWORD") 
 	strEncoded := b64.StdEncoding.EncodeToString([]byte(strToEncode)) 
 	return strEncoded
 }
 
 func GetUrlZinc() string {
-	return os.Getenv("ENV_URL_ZINC")
+	return os.Getenv("ENV_ZINC_URL")
 }

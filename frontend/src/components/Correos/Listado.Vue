@@ -1,13 +1,13 @@
 <script setup>
-  import axios from "axios";
   import { ref, unref, watch, computed} from "vue";
   import {useEmailStore} from '../../store/email.js';
   import router from "../../router";
+  import axios from "axios";
   
   const emailStore = useEmailStore();
 
   //Variables no reactivas
-  const timeout = 5000;
+  const timeout = 30000;
   const keys = ['From', 'To', 'Subject'];
 
   // Propiedades recibidas
@@ -54,9 +54,8 @@
         }
 
         loadingEmails.value = true;
-        const resp = await axios.post("/zinc/correos/search/api", unref(bodySearch), { timeout })
+        const resp = await axios.post("/zinc/ernor/search/api", unref(bodySearch), { timeout })
         const hits = resp.data.hits;
-
 
         //Es la primera consulta de la query actual.
         if(items.value.length == 0)
@@ -104,15 +103,27 @@
   const showEmail = (index)=>{
     const obj = items.value[index];
     emailStore.setEmail(obj);
-    router.push(`/email/${encodeUTF8_To_B64(obj["_id"])}`)
+    let param = {
+      from: index,
+      id: obj["_id"],
+      query: props.query
+    }
+    router.push(`/email/${encodeUTF8_To_B64(JSON.stringify(param))}`)
   }
 
   //Observadores de variables reactivas
   watch(()=>props.query, (newQuery, oldQuery)=> {
     items.value = [];
-    bodySearch.value.search_type = (newQuery != "") ?  "match" : "matchall";
-    bodySearch.value.query.term = (newQuery != "" ) ? newQuery : "";
 
+    if(newQuery) {
+      bodySearch.value.search_type = "match";
+      bodySearch.value.query.term =  newQuery;
+
+    }else {
+      bodySearch.value.search_type = "matchall";
+      bodySearch.value.query.term = "";
+    }
+    
     currentPage.value = 1
     bodySearch.value.from = (currentPage.value - 1) * itemsPerPage.value;
 
@@ -176,7 +187,7 @@
 
 <style scope>
 .section {
-  width: auto;
+  width: 80%;
   display: flex;
   flex-flow: column nowrap;
   align-items: stretch;
@@ -234,8 +245,13 @@ h3 {
 .email__show  {
   border-top-right-radius: 16px;
   border-bottom-right-radius: 16px;
-  cursor: pointer;
 }
+
+.email__show:hover {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
 
 .email__content {
   width: 80%;

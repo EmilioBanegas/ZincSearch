@@ -1,11 +1,3 @@
-<script setup>
-  //import imgUrl from '@/assets/pattern-bg.png';
-  import { onMounted } from "vue";
-  //onMounted(()=>{
-  //  document.getElementById('header').style.backgroundColor = imgUrl
-  //})
-</script>
-
 <template>
   <header id="header" class="header">
     <h1 class="header__title">Mamumo - Buscador</h1>

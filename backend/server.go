@@ -19,10 +19,6 @@ import (
 	"example.com/routes"
 )
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-}
-
 func main() {
 	godotenv.Load()
 
@@ -33,14 +29,10 @@ func main() {
 	app.Use(middleware.AllowContentType("application/json","text/xml"))
 
 	app.Use(cors.Handler(cors.Options{
-    // AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-    AllowedOrigins:   []string{"https://*", "http://*"},
-    // AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-    AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-    AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-    //ExposedHeaders:   []string{"Link"},
+    AllowedOrigins:   []string{"http://*"},
+    AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+    AllowedHeaders:   []string{"Content-Type"},
     AllowCredentials: false,
-    //MaxAge:           300, // Maximum value not ignored by any of major browsers
   }))
 
 	// Adding mores routes to app
@@ -61,7 +53,12 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		panic("FileServer does not permit any URL parameters.")
 	}
 
-	r.Get("/email*", http.RedirectHandler(path+"/", 301).ServeHTTP )
+	matchPath := path
+	if len(path) == 0 || path[len(path)-1] != '/' {
+		matchPath = matchPath + "/"
+	}
+
+	r.Get(matchPath+"email*", http.RedirectHandler(path+"/", 301).ServeHTTP )
 
 	if path != "/" && path[len(path)-1] != '/' {
 		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)

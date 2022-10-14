@@ -1,35 +1,72 @@
 <script setup>
   import router from "../router/index.js";
   import { useEmailStore } from "../store/email";
-  import { ref, nextTick } from "vue" 
+  import { ref, nextTick, onBeforeMount } from "vue" 
   import axios from "axios";
   
   //Store
   const emailStore = useEmailStore();
 
+  //Props
+  const props = defineProps({
+    from: {
+      type:[Number],
+      default:0
+    },
+    id: {
+      type: [String],
+      required: true
+    },
+    query: {
+      type:[String],
+      required:true
+    }
+  })
+
   //Variables constantes
   const timeout = 10000;
   const fieldsEmail = [
-    "Date",
     "From",
     "To",
     "Subject",
+    "Bcc",
+    "Cc",
     "X-From",
     "X-To",
-    "X-Origin",
-    "X-bcc",
+    "X-Bcc",
     "X-cc",
+    "X-Origin",
+    "Date",
     "Content"
-  ]
+  ];
+
+  const entitiesHTML = [
+    {key:"<", value:"&lt;"},
+    {key: ">", value:"&gt;"},
+    {key:'"', value:"&quot;"},
+    {key:"'", value:"&apos;"},
+    {key:"&lt;mark&gt;", value:"<mark>"},
+    {key:"&lt;/mark&gt;", value:"</mark>"},
+  ];
+
 
   //Variables reactivas
   const email = ref(null);
   const errorEmail = ref(false);
   const loadingEmail = ref(false);
-  const id = ref(router.currentRoute.value.params.id);
-  id.value = decodeURIComponent(atob(id.value));
 
   //Funciones
+  const encodeField = (field) => {
+    let newStr = email.value['_source'][field];
+    for (const {key, value} of entitiesHTML) {
+      newStr = newStr.replace(key, value)
+    }
+    
+    newStr = newStr.replace(`${props.query}`, `<mark>${props.query}</mark>`)
+
+    return newStr;
+  }
+
   const goBack = ()=>{
     router.push("/");
   }
@@ -51,19 +88,25 @@
       loadingEmail.value = true;
 
       const obj = {
-        "from": 0,
+        "from": props.from,
         "max_results": 1,
         "query": {
           "bool": {
-            "filter": [ {"term" : { "_id" : id.value} } ]
+            "should": [
+              { "simple_query_string": { "query": props.query } }
+            ],
+            "filter": [ 
+              { "term" : { "_id" : props.id}}  
+            ]
           }
         },
         "_source": []
-      };
+      }
 
-      const resp = await axios.post("/zinc/correos/search/es", obj, { timeout })
+      const resp = await axios.post("/zinc/ernor/search/es", obj, { timeout })
       const hits = resp.data.hits;
       email.value = hits.hits[0];
+
       //errorEmail depende de la respuesta asíncrona.
       if(resp)
         errorEmail.value = false;
@@ -97,7 +140,10 @@
           <template v-for="( key, index) in fieldsEmail" :key="`${key}-${index}`">
             <div v-if="email['_source'][key]">
               <h3>{{key}}</h3>
-              <p class="q-mb-lg">{{ email['_source'][key] }}</p>
+              <p 
+                class="q-mb-lg" style="white-space: pre-wrap;" 
+                v-html="encodeField(key)"
+              ></p>
             </div>
           </template>
         </div>
@@ -128,7 +174,9 @@
   justify-content: center;
   align-items: center;
   max-width:100vw;
+  min-height: 80vh;
   height:80vh;
+  max-height:80vh;
 }
 
 .main__btnGoBack {

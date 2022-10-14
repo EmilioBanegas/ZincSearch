@@ -1,6 +1,21 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Search from "../views/Search.vue";
 
+const decodeB64_To_UTF8 = (str) => {
+  let decodedStr = { id: '', query: ''};
+  try {
+    decodedStr = decodeURIComponent(atob(str));
+    decodedStr = JSON.parse(decodedStr);
+  } catch (error) {
+    console.log(error);
+  }
+  return decodedStr;
+};
+
+const mapPropsEmail = (route)=> {
+  return decodeB64_To_UTF8(route.params.id);
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -12,6 +27,7 @@ const router = createRouter({
     {
       path: "/email/:id",
       name: "Email",
+      props: (route)=>mapPropsEmail(route),
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.

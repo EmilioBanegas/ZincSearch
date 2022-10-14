@@ -6,7 +6,7 @@ import base64
 import requests
 
 #Config ZincSearch
-index = "correos"
+index = "ernor"
 zinc_server = "http://localhost:4080/api"
 zinc_uid = "admin"
 zinc_pwd = "Complexpass#123"
@@ -86,6 +86,24 @@ def createIndex():
           "highlightable": True  
         },
         "Cc": {
+          "type": "text",
+          "index": True,
+          "store": True,
+          "highlightable": True  
+        },
+        "X-From": {
+          "type": "keyword",
+          "index": True,
+          "store": True,
+          "highlightable": True  
+        },
+        "X-To": {
+          "type": "text",
+          "index": True,
+          "store": True,
+          "highlightable": True  
+        },
+        "X-cc": {
           "type": "text",
           "index": True,
           "store": True,
